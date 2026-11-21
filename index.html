@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YojanaFinder — Find government schemes you may qualify for</title>
+<meta name="description" content="Answer five short questions and see Indian government schemes you may qualify for. A simple, independent guide.">
+<style>
+  /* ============ YojanaFinder — Glassmorphism x Swiss Minimalism ============ */
+  :root{
+    --ink:#f2f6f7;
+    --ink-dim:rgba(242,246,247,.68);
+    --ink-faint:rgba(242,246,247,.45);
+    --glass:rgba(255,255,255,.07);
+    --glass-strong:rgba(255,255,255,.12);
+    --stroke:rgba(255,255,255,.16);
+    --accent:#ff5a3c;
+    --accent-soft:rgba(255,90,60,.16);
+    --gold:#ffb347;
+    --radius:20px;
+    --font:"Avenir Next","Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    min-height:100vh;
+    background:#0d212b;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* layered backdrop: deep teal gradient + two soft colour fields */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-2;
+    background:linear-gradient(150deg,#081820 0%,#0d2b3a 46%,#123a3f 100%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(560px 380px at 88% -6%, rgba(255,153,51,.20), transparent 65%),
+      radial-gradient(640px 460px at -12% 96%, rgba(19,136,8,.16), transparent 65%),
+      radial-gradient(420px 300px at 55% 110%, rgba(255,179,71,.10), transparent 60%);
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 40px}
+
+  /* ---------- header ---------- */
+  header.top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+  .kicker{
+    font-size:11px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:10px;
+  }
+  h1{font-size:clamp(34px,8vw,52px);font-weight:800;letter-spacing:-.02em;line-height:1.02}
+  h1 .thin{font-weight:300;color:var(--ink-dim)}
+  .tagline{margin-top:12px;font-size:clamp(15px,4vw,18px);line-height:1.5;color:var(--ink-dim);max-width:34ch}
+  .langbtn{
+    flex:none;cursor:pointer;font-family:var(--font);font-size:14px;font-weight:700;
+    color:var(--ink);background:var(--glass);border:1px solid var(--stroke);
+    border-radius:999px;padding:9px 16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  }
+  .langbtn:hover{background:var(--glass-strong)}
+  .rule{height:1px;background:var(--stroke);margin:26px 0 22px}
+
+  /* ---------- glass card ---------- */
+  .card{
+    background:var(--glass);border:1px solid var(--stroke);border-radius:var(--radius);
+    backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);
+    box-shadow:0 24px 50px rgba(0,0,0,.35);
+    padding:24px 20px 26px;
+  }
+  .fade{animation:fade .35s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ---------- quiz ---------- */
+  .stepmeta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .stepno{font-size:40px;font-weight:800;letter-spacing:-.02em;color:var(--ink-faint);line-height:1}
+  .stepcount{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint)}
+  .bar{height:5px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin:12px 0 22px}
+  .bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .35s ease}
+  h2.q{font-size:clamp(22px,5.4vw,28px);font-weight:750;letter-spacing:-.01em;line-height:1.2;margin-bottom:6px}
+  .qsub{font-size:14px;color:var(--ink-dim);margin-bottom:18px;line-height:1.5}
+  .opts{display:grid;grid-template-columns:1fr;gap:10px}
+  .opt{
+    cursor:pointer;text-align:left;font-family:var(--font);font-size:16.5px;font-weight:600;
+    color:var(--ink);background:rgba(255,255,255,.05);border:1px solid var(--stroke);
+    border-radius:14px;padding:15px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;
+    transition:transform .15s ease,background .15s ease,border-color .15s ease;
+  }
+  .opt:hover{transform:translateY(-1px);background:var(--glass-strong)}
+  .opt .arr{color:var(--ink-faint);font-weight:400}
+  .opt.sel{background:var(--accent-soft);border-color:var(--accent)}
+  .opt.sel .arr{color:var(--accent)}
+  select.state{
+    width:100%;font-family:var(--font);font-size:16.5px;font-weight:600;color:var(--ink);
+    background:rgba(255,255,255,.06);border:1px solid var(--stroke);border-radius:14px;padding:15px 14px;
+    appearance:none;-webkit-appearance:none;
+  }
+  select.state option{color:#10222b}
+  .navrow{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:12px}
+  .btn{
+    cursor:pointer;font-family:var(--font);font-size:15.5px;font-weight:700;border-radius:999px;
+    padding:12px 22px;border:1px solid var(--stroke);background:var(--glass);color:var(--ink);
+  }
+  .btn:hover{background:var(--glass-strong)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:#ff6c50}
+  .btn.ghost{background:transparent}
+  .btn[disabled]{opacity:.4;cursor:not-allowed}
+
+  /* ---------- results ---------- */
+  .reshead{margin-bottom:4px}
+  .rescount{font-size:clamp(24px,6vw,32px);font-weight:800;letter-spacing:-.015em;line-height:1.15}
+  .resfor{color:var(--ink-dim);font-size:15px;line-height:1.55;margin-top:8px}
+  .schemes{display:grid;grid-template-columns:1fr;gap:12px;margin-top:20px}
+  .scheme{
+    background:rgba(255,255,255,.055);border:1px solid var(--stroke);border-radius:16px;padding:18px;
+  }
+  .scheme h3{font-size:19px;font-weight:750;letter-spacing:-.01em;line-height:1.25}
+  .scheme .benefit{margin-top:8px;font-size:16px;line-height:1.5;font-weight:600;color:#fff}
+  .scheme .who{margin-top:5px;font-size:14px;line-height:1.55;color:var(--ink-dim)}
+  .portal{
+    display:inline-flex;align-items:center;gap:7px;margin-top:13px;font-size:13.5px;font-weight:700;
+    color:var(--gold);text-decoration:none;border:1px solid rgba(255,179,71,.4);
+    padding:7px 12px;border-radius:999px;background:rgba(255,179,71,.08);
+  }
+  .portal:hover{background:rgba(255,179,71,.16)}
+  .note{
+    margin-top:20px;font-size:13.5px;line-height:1.6;color:var(--ink-dim);
+    border-left:3px solid var(--accent);padding:4px 0 4px 13px;
+  }
+  .empty{font-size:16px;line-height:1.6;color:var(--ink-dim);padding:8px 0}
+  .browse{display:block;margin:18px auto 0;text-align:center;background:none;border:none;cursor:pointer;
+    font-family:var(--font);font-size:14.5px;font-weight:700;color:var(--ink-dim);text-decoration:underline;text-underline-offset:4px}
+  .browse:hover{color:var(--ink)}
+
+  /* ---------- footer ---------- */
+  footer{margin-top:30px;border-top:1px solid var(--stroke);padding-top:18px;
+    font-size:13px;line-height:1.65;color:var(--ink-faint)}
+  footer strong{color:var(--ink-dim)}
+
+  @media (min-width:640px){
+    .wrap{padding:40px 24px 48px}
+    .card{padding:30px 30px 32px}
+    .opts{grid-template-columns:1fr 1fr}
+    .schemes{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <div class="kicker" data-en="A simple guide · India" data-hi="एक सरल मार्गदर्शिका · भारत">A simple guide · India</div>
+      <h1>Yojana<span class="thin">Finder</span></h1>
+      <p class="tagline" data-en="Find government schemes you may qualify for — in under a minute."
+         data-hi="सरकारी योजनाएँ खोजें जिनके लिए आप पात्र हो सकते हैं — एक मिनट से भी कम समय में।">Find government schemes you may qualify for — in under a minute.</p>
+    </div>
+    <button class="langbtn" id="langToggle" type="button" aria-label="Switch language">हिन्दी</button>
+  </header>
+
+  <div class="rule"></div>
+
+  <main>
+    <!-- quiz / results get rendered here -->
+    <section class="card" id="stage" aria-live="polite"></section>
+    <button class="browse" id="browseAll" type="button"
+      data-en="Or browse all schemes without the questions"
+      data-hi="या बिना सवालों के सभी योजनाएँ देखें">Or browse all schemes without the questions</button>
+  </main>
+
+  <footer>
+    <p data-en="YojanaFinder is an independent guide made for a hackathon. It is not an official government website, and a match here does not guarantee approval. Scheme rules change — always confirm your eligibility on the official portal before you apply."
+       data-hi="YojanaFinder एक स्वतंत्र मार्गदर्शिका है जो एक हैकाथॉन के लिए बनाई गई है। यह कोई आधिकारिक सरकारी वेबसाइट नहीं है, और यहाँ मेल मिलने से मंज़ूरी की गारंटी नहीं मिलती। नियम बदलते रहते हैं — आवेदन से पहले आधिकारिक पोर्टल पर अपनी पात्रता ज़रूर जाँचें।">
+       <strong>YojanaFinder is an independent guide</strong> made for a hackathon. It is <strong>not an official government website</strong>, and a match here does not guarantee approval. Scheme rules change — always confirm your eligibility on the official portal before you apply.
+    </p>
+  </footer>
+</div>
+
+<script id="yf-logic">
+"use strict";
+/* ================= YojanaFinder data + matching logic (no DOM in this block) ================= */
+
+var AGE_BANDS = [
+  { id: "u18",   en: "Under 18",    hi: "18 से कम",    min: 0,  max: 17  },
+  { id: "a1825", en: "18 – 25",     hi: "18 – 25",     min: 18, max: 25  },
+  { id: "a2640", en: "26 – 40",     hi: "26 – 40",     min: 26, max: 40  },
+  { id: "a4159", en: "41 – 59",     hi: "41 – 59",     min: 41, max: 59  },
+  { id: "a60p",  en: "60 or above", hi: "60 या अधिक",  min: 60, max: 120 }
+];
+
+var INCOME_BANDS = [
+  { id: "i1", en: "Under ₹1 lakh a year",  hi: "सालाना ₹1 लाख से कम" },
+  { id: "i2", en: "₹1 – 3 lakh a year",    hi: "सालाना ₹1 – 3 लाख" },
+  { id: "i3", en: "₹3 – 6 lakh a year",    hi: "सालाना ₹3 – 6 लाख" },
+  { id: "i4", en: "₹6 – 12 lakh a year",   hi: "सालाना ₹6 – 12 लाख" },
+  { id: "i5", en: "Above ₹12 lakh a year", hi: "सालाना ₹12 लाख से अधिक" }
+];
+
+var GENDERS = [
+  { id: "female", en: "Female", hi: "महिला" },
+  { id: "male",   en: "Male",   hi: "पुरुष" },
+  { id: "other",  en: "Other",  hi: "अन्य" }
+];
+
+var OCCUPATIONS = [
+  { id: "farmer",    en: "Farmer",                          hi: "किसान" },
+  { id: "student",   en: "Student",                         hi: "छात्र" },
+  { id: "self",      en: "Self-employed / own business",    hi: "स्वरोज़गार / अपना व्यवसाय" },
+  { id: "salaried",  en: "Salaried job",                    hi: "नौकरीपेशा" },
+  { id: "daily",     en: "Daily-wage / unorganised worker", hi: "दिहाड़ी / असंगठित मज़दूर" },
+  { id: "homemaker", en: "Homemaker",                       hi: "गृहिणी" },
+  { id: "artisan",   en: "Artisan / craftsperson",          hi: "कारीगर / शिल्पकार" },
+  { id: "vendor",    en: "Street vendor",                   hi: "रेहड़ी-पटरी विक्रेता" },
+  { id: "retired",   en: "Retired / senior citizen",        hi: "सेवानिवृत्त / वरिष्ठ नागरिक" },
+  { id: "other",     en: "Other / not working right now",   hi: "अन्य / अभी कार्यरत नहीं" }
+];
+
+var STATES = [
+  "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",
+  "Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh",
+  "Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab","Rajasthan",
+  "Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal",
+  "Andaman and Nicobar Islands","Chandigarh","Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi","Jammu and Kashmir","Ladakh","Lakshadweep","Puducherry"
+];
+
+/* Each scheme: widely documented public facts only.
+   minAge/maxAge = scheme age window; occ = occupation ids or null (any);
+   maxInc = highest income-band index allowed (0-based) or null (any);
+   gender = "female" or null (any). All schemes below are central, pan-India. */
+var SCHEMES = [
+  { id: "pmkisan", name: "PM-KISAN Samman Nidhi", minAge: 18, maxAge: 120, occ: ["farmer"], maxInc: null, gender: null,
+    who: "For land-owning farmer families across India.",
+    benefit: "₹6,000 a year in three instalments, paid straight into the farmer's bank account.",
+    portal: "pmkisan.gov.in" },
+  { id: "pmjay", name: "Ayushman Bharat — PM-JAY", minAge: 0, maxAge: 120, occ: null, maxInc: 1, gender: null,
+    who: "For low-income families identified under the national deprivation lists.",
+    benefit: "Free hospital treatment up to ₹5 lakh per family, every year, at listed hospitals.",
+    portal: "beneficiary.nha.gov.in" },
+  { id: "pmay", name: "PM Awas Yojana (Housing for All)", minAge: 18, maxAge: 120, occ: null, maxInc: 2, gender: null,
+    who: "For families who do not own a pucca house, in villages and in cities.",
+    benefit: "Financial help to build or buy a proper house.",
+    portal: "pmay-urban.gov.in" },
+  { id: "sukanya", name: "Sukanya Samriddhi Yojana", minAge: 18, maxAge: 59, occ: null, maxInc: null, gender: null,
+    who: "For parents opening a savings account in the name of a daughter below age 10.",
+    benefit: "Save ₹250 to ₹1.5 lakh a year at a high interest rate for her education and future.",
+    portal: "nsiindia.gov.in" },
+  { id: "mudra", name: "PM Mudra Yojana", minAge: 18, maxAge: 120, occ: ["self", "vendor", "artisan"], maxInc: null, gender: null,
+    who: "For people starting or running a small non-farm business.",
+    benefit: "Business loans up to ₹10 lakh without collateral (higher limits for repeat Tarun borrowers).",
+    portal: "mudra.org.in" },
+  { id: "standup", name: "Stand-Up India", minAge: 18, maxAge: 120, occ: ["self"], maxInc: null, gender: "female",
+    who: "For women and SC/ST entrepreneurs setting up a first, new business.",
+    benefit: "Bank loans from ₹10 lakh to ₹1 crore for the new venture.",
+    portal: "standupmitra.in" },
+  { id: "atal", name: "Atal Pension Yojana", minAge: 18, maxAge: 40, occ: null, maxInc: null, gender: null,
+    who: "For workers who will not receive a pension from a formal job.",
+    benefit: "A fixed pension of ₹1,000 to ₹5,000 a month after the age of 60.",
+    portal: "jansuraksha.gov.in" },
+  { id: "jandhan", name: "PM Jan Dhan Yojana", minAge: 10, maxAge: 120, occ: null, maxInc: null, gender: null,
+    who: "For anyone who needs a first, basic bank account.",
+    benefit: "A zero-balance account with a RuPay debit card and built-in ₹2 lakh accident cover.",
+    portal: "pmjdy.gov.in" },
+  { id: "nsp", name: "National Scholarship Portal schemes", minAge: 0, maxAge: 120, occ: ["student"], maxInc: 1, gender: null,
+    who: "For school and college students; many schemes need family income under about ₹2.5 lakh a year.",
+    benefit: "One portal for central and state scholarships, from Class 1 up to PhD.",
+    portal: "scholarships.gov.in" },
+  { id: "fasal", name: "PM Fasal Bima Yojana", minAge: 18, maxAge: 120, occ: ["farmer"], maxInc: null, gender: null,
+    who: "For farmers growing notified crops in notified areas.",
+    benefit: "Insurance payout if the crop is lost to drought, flood, pests or disease.",
+    portal: "pmfby.gov.in" },
+  { id: "jjby", name: "PM Jeevan Jyoti Bima Yojana", minAge: 18, maxAge: 50, occ: null, maxInc: null, gender: null,
+    who: "For adults with a bank or post office account.",
+    benefit: "₹2 lakh life cover for the family, at a premium of ₹436 a year.",
+    portal: "jansuraksha.gov.in" },
+  { id: "sby", name: "PM Suraksha Bima Yojana", minAge: 18, maxAge: 70, occ: null, maxInc: null, gender: null,
+    who: "For adults with a bank or post office account.",
+    benefit: "₹2 lakh cover for accidental death or disability, at a premium of just ₹20 a year.",
+    portal: "jansuraksha.gov.in" },
+  { id: "vishwakarma", name: "PM Vishwakarma", minAge: 18, maxAge: 120, occ: ["artisan"], maxInc: null, gender: null,
+    who: "For traditional artisans — carpenters, blacksmiths, potters, tailors, goldsmiths and other listed trades.",
+    benefit: "Skill training with a daily stipend, toolkit support, and loans up to ₹3 lakh at 5% interest.",
+    portal: "pmvishwakarma.gov.in" },
+  { id: "svanidhi", name: "PM SVANidhi", minAge: 18, maxAge: 120, occ: ["vendor"], maxInc: null, gender: null,
+    who: "For street vendors working in towns and cities.",
+    benefit: "Working-capital micro-loans starting at ₹10,000, with an interest subsidy on regular repayment.",
+    portal: "pmsvanidhi.mohua.gov.in" },
+  { id: "kcc", name: "Kisan Credit Card", minAge: 18, maxAge: 120, occ: ["farmer"], maxInc: null, gender: null,
+    who: "For farmers who need credit for seeds, fertiliser and other farm costs.",
+    benefit: "Short-term crop loans at low interest, with a limit of up to ₹5 lakh.",
+    portal: "jansamarth.in" },
+  { id: "ignoaps", name: "Old Age Pension (NSAP — IGNOAPS)", minAge: 60, maxAge: 120, occ: null, maxInc: 0, gender: null,
+    who: "For senior citizens from below-poverty-line households.",
+    benefit: "A monthly pension, with the state government adding its own share on top.",
+    portal: "nsap.nic.in" },
+  { id: "pmmvy", name: "PM Matru Vandana Yojana", minAge: 18, maxAge: 50, occ: null, maxInc: null, gender: "female",
+    who: "For pregnant women and mothers of a first child.",
+    benefit: "₹5,000 in instalments, paid into the mother's bank or post office account.",
+    portal: "pmmvy.wcd.gov.in" },
+  { id: "ujjwala", name: "PM Ujjwala Yojana", minAge: 18, maxAge: 120, occ: null, maxInc: 1, gender: "female",
+    who: "For adult women from low-income households.",
+    benefit: "A free first LPG connection, given in the woman's name.",
+    portal: "pmuy.gov.in" },
+  { id: "pmkvy", name: "PM Kaushal Vikas Yojana (PMKVY)", minAge: 15, maxAge: 45, occ: null, maxInc: null, gender: null,
+    who: "For young people who want a short, job-ready skill course.",
+    benefit: "Free skill training with a recognised certificate, at centres across India.",
+    portal: "pmkvyofficial.org" },
+  { id: "internship", name: "PM Internship Scheme", minAge: 21, maxAge: 24, occ: ["student", "other"], maxInc: null, gender: null,
+    who: "For young people aged 21 to 24 who are not in a full-time job or a full-time course.",
+    benefit: "A 12-month internship in a large company, with ₹5,000 a month paid by the government.",
+    portal: "pminternship.mca.gov.in" },
+  { id: "vidyalakshmi", name: "Vidya Lakshmi education loans", minAge: 0, maxAge: 120, occ: ["student"], maxInc: null, gender: null,
+    who: "For students who need a loan for higher studies in India or abroad.",
+    benefit: "One portal to apply for an education loan from many banks at once.",
+    portal: "vidyalakshmi.co.in" },
+  { id: "vayavandana", name: "Ayushman Vaya Vandana (70+)", minAge: 70, maxAge: 120, occ: null, maxInc: null, gender: null,
+    who: "For every senior citizen aged 70 or above, whatever the family income.",
+    benefit: "Free hospital treatment up to ₹5 lakh a year under Ayushman Bharat.",
+    portal: "beneficiary.nha.gov.in" }
+];
+
+/* profile = { ageBand, gender, state, occupation, incomeBand } (ids from the tables above).
+   Returns the schemes whose age window overlaps the chosen band and whose
+   occupation / income / gender rules the profile satisfies. State is not a
+   filter: every scheme in this dataset is a central scheme open in all states. */
+function matchSchemes(profile) {
+  var band = null, i;
+  for (i = 0; i < AGE_BANDS.length; i++) if (AGE_BANDS[i].id === profile.ageBand) band = AGE_BANDS[i];
+  if (!band) return [];
+  var incIdx = -1;
+  for (i = 0; i < INCOME_BANDS.length; i++) if (INCOME_BANDS[i].id === profile.incomeBand) incIdx = i;
+  return SCHEMES.filter(function (s) {
+    if (band.min > s.maxAge || s.minAge > band.max) return false;         // age windows must overlap
+    if (s.occ && s.occ.indexOf(profile.occupation) === -1) return false;  // occupation rule
+    if (s.maxInc !== null && incIdx > s.maxInc) return false;             // income rule
+    if (s.gender && profile.gender !== s.gender) return false;            // gender rule
+    return true;
+  });
+}
+</script>
+
+<script>
+"use strict";
+/* ================= YojanaFinder UI ================= */
+(function () {
+  var lang = "en";
+  var stage = document.getElementById("stage");
+  var browseBtn = document.getElementById("browseAll");
+  var profile = { ageBand: null, gender: null, state: null, occupation: null, incomeBand: null };
+  var step = 0;
+  var view = "quiz"; /* quiz | results | all */
+
+  var STR = {
+    en: {
+      stepOf: function (a, b) { return "Step " + a + " of " + b; },
+      back: "← Back", next: "Next →",
+      qAge: "How old are you?", qAgeSub: "Pick the band closest to your age.",
+      qGender: "You are…", qGenderSub: "A few schemes are made only for women — this keeps your list right.",
+      qState: "Which state do you live in?", qStateSub: "Every scheme in this guide is a central scheme, open in all states. Your state is shown on your results.",
+      qOcc: "What do you do?", qOccSub: "Pick the one closest to your main work.",
+      qInc: "What is your family's yearly income?", qIncSub: "A rough idea is fine — many schemes have an income limit.",
+      pickState: "Choose your state…",
+      resultsFor: function (n) { return n === 1 ? "1 scheme may fit you" : n + " schemes may fit you"; },
+      forLine: function (occ, state) { return "For a " + occ.toLowerCase() + " in " + state + ", based on the answers you gave."; },
+      none: "No scheme in this guide fits those answers. Try again with a different occupation or income band — or browse the full list below.",
+      checkNote: "Eligibility is decided by the government, not by this page. Before you apply, open the official portal on each card and check the full rules, documents needed and last dates.",
+      official: "Check on the official portal",
+      again: "Start again",
+      allTitle: "All schemes in this guide",
+      allSub: "The full list, without any filters. Use the official portal on each card to check the rules.",
+      browseBack: "Back to the questions"
+    },
+    hi: {
+      stepOf: function (a, b) { return "चरण " + a + " / " + b; },
+      back: "← पीछे", next: "आगे →",
+      qAge: "आपकी उम्र कितनी है?", qAgeSub: "अपनी उम्र के सबसे करीब वाला विकल्प चुनें।",
+      qGender: "आप हैं…", qGenderSub: "कुछ योजनाएँ केवल महिलाओं के लिए हैं — इससे आपकी सूची सही रहेगी।",
+      qState: "आप किस राज्य में रहते हैं?", qStateSub: "इस गाइड की हर योजना केंद्रीय योजना है, सभी राज्यों में खुली है। आपका राज्य आपके परिणामों पर दिखेगा।",
+      qOcc: "आप क्या करते हैं?", qOccSub: "अपने मुख्य काम के सबसे करीब वाला विकल्प चुनें।",
+      qInc: "आपके परिवार की सालाना आय कितनी है?", qIncSub: "अंदाज़ा ही काफी है — कई योजनाओं में आय की सीमा होती है।",
+      pickState: "अपना राज्य चुनें…",
+      resultsFor: function (n) { return n + " योजनाएँ आपके लिए हो सकती हैं"; },
+      forLine: function (occ, state) { return state + " में रहने वाले " + occ + " के लिए, आपके जवाबों के आधार पर।"; },
+      none: "इन जवाबों के हिसाब से इस गाइड में कोई योजना नहीं मिली। कोई और व्यवसाय या आय विकल्प चुनकर फिर कोशिश करें — या नीचे पूरी सूची देखें।",
+      checkNote: "पात्रता सरकार तय करती है, यह पेज नहीं। आवेदन से पहले हर कार्ड पर दिया आधिकारिक पोर्टल खोलकर पूरे नियम, ज़रूरी दस्तावेज़ और अंतिम तारीखें ज़रूर जाँचें।",
+      official: "आधिकारिक पोर्टल पर जाँचें",
+      again: "फिर से शुरू करें",
+      allTitle: "इस गाइड की सभी योजनाएँ",
+      allSub: "पूरी सूची, बिना किसी फ़िल्टर के। नियम जानने के लिए हर कार्ड पर आधिकारिक पोर्टल देखें।",
+      browseBack: "सवालों पर वापस जाएँ"
+    }
+  };
+  function S() { return STR[lang]; }
+  function L(item) { return item[lang]; }
+  function esc(t) {
+    return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  var STEPS = [
+    { key: "ageBand",    title: function () { return S().qAge; },    sub: function () { return S().qAgeSub; },    items: function () { return AGE_BANDS; } },
+    { key: "gender",     title: function () { return S().qGender; }, sub: function () { return S().qGenderSub; }, items: function () { return GENDERS; } },
+    { key: "state",      title: function () { return S().qState; },  sub: function () { return S().qStateSub; },  items: null },
+    { key: "occupation", title: function () { return S().qOcc; },     sub: function () { return S().qOccSub; },     items: function () { return OCCUPATIONS; } },
+    { key: "incomeBand", title: function () { return S().qInc; },     sub: function () { return S().qIncSub; },     items: function () { return INCOME_BANDS; } }
+  ];
+
+  function renderStep() {
+    view = "quiz";
+    var st = STEPS[step];
+    var html = '<div class="fade">';
+    html += '<div class="stepmeta"><span class="stepno">0' + (step + 1) + '</span>' +
+            '<span class="stepcount">' + esc(S().stepOf(step + 1, STEPS.length)) + '</span></div>';
+    html += '<div class="bar"><i style="width:' + ((step + 1) / STEPS.length * 100) + '%"></i></div>';
+    html += '<h2 class="q">' + esc(st.title()) + '</h2><p class="qsub">' + esc(st.sub()) + '</p>';
+
+    if (st.key === "state") {
+      html += '<select class="state" id="stateSel" aria-label="State">';
+      html += '<option value="">' + esc(S().pickState) + '</option>';
+      STATES.forEach(function (name) {
+        html += '<option value="' + esc(name) + '"' + (profile.state === name ? " selected" : "") + '>' + esc(name) + '</option>';
+      });
+      html += '</select>';
+    } else {
+      html += '<div class="opts">';
+      st.items().forEach(function (item) {
+        var sel = profile[st.key] === item.id ? " sel" : "";
+        html += '<button type="button" class="opt' + sel + '" data-key="' + st.key + '" data-val="' + item.id + '">' +
+                '<span>' + esc(L(item)) + '</span><span class="arr">→</span></button>';
+      });
+      html += '</div>';
+    }
+
+    html += '<div class="navrow">';
+    html += step > 0
+      ? '<button type="button" class="btn ghost" id="backBtn">' + esc(S().back) + '</button>'
+      : '<span></span>';
+    if (st.key === "state") {
+      html += '<button type="button" class="btn primary" id="nextBtn"' + (profile.state ? "" : " disabled") + '>' + esc(S().next) + '</button>';
+    } else {
+      html += '<span></span>';
+    }
+    html += '</div></div>';
+    stage.innerHTML = html;
+
+    stage.querySelectorAll(".opt").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        profile[btn.getAttribute("data-key")] = btn.getAttribute("data-val");
+        advance();
+      });
+    });
+    var back = document.getElementById("backBtn");
+    if (back) back.addEventListener("click", function () { step--; renderStep(); });
+    if (st.key === "state") {
+      var sel = document.getElementById("stateSel");
+      var next = document.getElementById("nextBtn");
+      sel.addEventListener("change", function () {
+        profile.state = sel.value || null;
+        next.disabled = !profile.state;
+      });
+      next.addEventListener("click", function () { if (profile.state) advance(); });
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function advance() {
+    if (step < STEPS.length - 1) { step++; renderStep(); }
+    else renderResults(matchSchemes(profile), false);
+  }
+
+  function schemeCard(s) {
+    return '<article class="scheme"><h3>' + esc(s.name) + '</h3>' +
+      '<p class="benefit">' + esc(s.benefit) + '</p>' +
+      '<p class="who">' + esc(s.who) + '</p>' +
+      '<a class="portal" href="https://' + esc(s.portal) + '" target="_blank" rel="noopener noreferrer">' +
+      esc(S().official) + ' · ' + esc(s.portal) + ' ↗</a></article>';
+  }
+
+  function renderResults(list, isAll) {
+    view = isAll ? "all" : "results";
+    var html = '<div class="fade"><div class="reshead">';
+    if (isAll) {
+      html += '<div class="kicker">' + esc(S().allTitle) + '</div>';
+      html += '<p class="resfor">' + esc(S().allSub) + '</p>';
+    } else {
+      var occ = OCCUPATIONS.filter(function (o) { return o.id === profile.occupation; })[0];
+      html += '<p class="rescount">' + esc(S().resultsFor(list.length)) + '</p>';
+      html += '<p class="resfor">' + esc(S().forLine(occ ? L(occ) : "", profile.state || "")) + '</p>';
+    }
+    html += '</div>';
+    if (list.length === 0) {
+      html += '<p class="empty">' + esc(S().none) + '</p>';
+    } else {
+      html += '<div class="schemes">' + list.map(schemeCard).join("") + '</div>';
+    }
+    html += '<p class="note">' + esc(S().checkNote) + '</p>';
+    html += '<div class="navrow"><button type="button" class="btn primary" id="againBtn">' +
+            esc(isAll ? S().browseBack : S().again) + '</button><span></span></div>';
+    html += '</div>';
+    stage.innerHTML = html;
+    document.getElementById("againBtn").addEventListener("click", function () {
+      if (!isAll) profile = { ageBand: null, gender: null, state: null, occupation: null, incomeBand: null };
+      step = 0; renderStep();
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function applyStaticLang() {
+    document.querySelectorAll("[data-" + lang + "]").forEach(function (el) {
+      /* footer carries markup, so only swap plain-text nodes there via textContent for the toggle targets */
+      if (el.id === "browseAll") el.textContent = el.getAttribute("data-" + lang);
+      else if (el.tagName === "P" && el.closest("footer")) el.textContent = el.getAttribute("data-" + lang);
+      else el.textContent = el.getAttribute("data-" + lang);
+    });
+    document.getElementById("langToggle").textContent = lang === "en" ? "हिन्दी" : "English";
+    document.documentElement.lang = lang === "en" ? "en" : "hi";
+  }
+
+  document.getElementById("langToggle").addEventListener("click", function () {
+    lang = lang === "en" ? "hi" : "en";
+    applyStaticLang();
+    if (view === "results") renderResults(matchSchemes(profile), false);
+    else if (view === "all") renderResults(SCHEMES, true);
+    else renderStep();
+  });
+
+  browseBtn.addEventListener("click", function () { renderResults(SCHEMES, true); });
+
+  renderStep();
+})();
+</script>
+</body>
+</html>
